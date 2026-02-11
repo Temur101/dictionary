@@ -58,4 +58,4 @@ export interface GameStats {
 export type AppView = 'main' | 'game' | 'stats' | 'notFound';
 export type AppTheme = 'light' | 'dark' | 'blue' | 'orange' | 'purple' | 'green' | 'red' | 'pink';
 export type AppLanguage = 'en' | 'ru';
-export type GameMode = 'regular' | 'timed' | 'reverse' | 'choice';
+export type GameMode = 'regular' | 'timed' | 'reverse';

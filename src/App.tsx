@@ -12,7 +12,7 @@ import { Menu, X as CloseIcon, Play, BarChart2, Languages, Book, Palette, Globe,
 import { translations } from './i18n/translations';
 import styles from './App.module.css';
 import clsx from 'clsx';
-import type { AppTheme } from './types';
+import type { AppTheme, AppLanguage } from './types';
 
 const App: React.FC = () => {
   const {
@@ -92,7 +92,7 @@ const App: React.FC = () => {
 
       <main className={clsx(styles.mainContent, isGameActive && styles.mainImmersion)}>
         <header className={clsx(styles.topNav, isGameActive && styles.blur)}>
-          <div className={styles.navLeft} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div className={styles.navLeft}>
             <button className={styles.menuBtn} onClick={() => setSidebarOpen(!isSidebarOpen)}>
               {isSidebarOpen ? <CloseIcon size={24} /> : <Menu size={24} />}
             </button>
@@ -102,42 +102,44 @@ const App: React.FC = () => {
           </div>
 
           <nav className={styles.navActions}>
-            <div className={styles.switchers}>
-              <ThemeSwitcher current={theme} onSelect={setTheme} />
+            <div className={styles.desktopOnlyActions}>
+              <div className={styles.switchers}>
+                <ThemeSwitcher current={theme} onSelect={setTheme} />
 
-              <button className={styles.iconBtn} onClick={() => setLanguage(language === 'en' ? 'ru' : 'en')}>
-                <Globe size={18} />
-                <span className={styles.langLabel}>{language.toUpperCase()}</span>
+                <button className={styles.iconBtn} onClick={() => setLanguage(language === 'en' ? 'ru' : 'en')}>
+                  <Globe size={18} />
+                  <span className={styles.langLabel}>{language.toUpperCase()}</span>
+                </button>
+              </div>
+
+              <div className={styles.divider} />
+
+              <button
+                className={view === 'main' ? styles.active : ''}
+                onClick={() => setView('main')}
+              >
+                <Book size={18} /> <span>{t.nav.words}</span>
+              </button>
+
+              <button
+                className={view === 'game' ? styles.active : ''}
+                onClick={() => setView('game')}
+              >
+                <Play size={18} /> <span>{t.nav.play}</span>
+              </button>
+
+              <StatsTrigger t={t} />
+
+              <button className={styles.iconBtn} onClick={() => setTranslatorOpen(!isTranslatorOpen)}>
+                <Languages size={18} />
+              </button>
+
+              <div className={styles.divider} />
+
+              <button className={styles.logoutBtn} onClick={() => logout()}>
+                <LogOut size={18} /> <span>Выход</span>
               </button>
             </div>
-
-            <div className={styles.divider} />
-
-            <button
-              className={view === 'main' ? styles.active : ''}
-              onClick={() => setView('main')}
-            >
-              <Book size={18} /> <span>{t.nav.words}</span>
-            </button>
-
-            <button
-              className={view === 'game' ? styles.active : ''}
-              onClick={() => setView('game')}
-            >
-              <Play size={18} /> <span>{t.nav.play}</span>
-            </button>
-
-            <StatsTrigger t={t} />
-
-            <button className={styles.iconBtn} onClick={() => setTranslatorOpen(!isTranslatorOpen)}>
-              <Languages size={18} />
-            </button>
-
-            <div className={styles.divider} />
-
-            <button className={styles.logoutBtn} onClick={() => logout()}>
-              <LogOut size={18} /> <span>Выход</span>
-            </button>
           </nav>
         </header>
 

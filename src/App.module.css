@@ -33,7 +33,7 @@
         left: -100%;
         top: 0;
         bottom: 0;
-        width: 280px;
+        width: min(320px, 85vw);
         background: var(--card-bg);
         transition: left 0.3s ease;
         box-shadow: 10px 0 30px rgba(0, 0, 0, 0.1);
@@ -102,10 +102,28 @@
     }
 }
 
+.navLeft {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
 .navActions {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+}
+
+.desktopOnlyActions {
+    display: none;
+    /* Mobile first: hide by default */
+}
+
+@media (min-width: 1024px) {
+    .desktopOnlyActions {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
 }
 
 .switchers {

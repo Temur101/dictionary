@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useStore } from '../../store/useStore';
 import type { Word } from '../../types';
-import { CheckCircle, XCircle, Trophy, RotateCcw, Home, Clock, ArrowRightLeft, Target, ListFilter } from 'lucide-react';
+import { CheckCircle, XCircle, Trophy, RotateCcw, Home, Clock, ArrowRightLeft, Target } from 'lucide-react';
 import { translations } from '../../i18n/translations';
 import { Modal } from '../common/Modal';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -22,13 +22,12 @@ export const GameView: React.FC = () => {
     const [userInput, setUserInput] = useState('');
     const [showFeedback, setShowFeedback] = useState<'correct' | 'incorrect' | null>(null);
     const [timeLeft, setTimeLeft] = useState(15);
-    const [options, setOptions] = useState<string[]>([]);
-    const [selectedOption, setSelectedOption] = useState<string | null>(null);
 
     // Sync gameWords when words or session changes
     useEffect(() => {
         if (gameSession?.list_ids) {
             const sessionWords = words.filter(w => gameSession.list_ids.includes(w.list_id));
+            // We should ideally persist the exact order, but for now we filter and fallback
             setGameWords(sessionWords);
         }
     }, [words, gameSession?.list_ids]);
@@ -43,32 +42,6 @@ export const GameView: React.FC = () => {
         const incorrectWords = gameSession?.answers.filter(a => !a.correct).map(a => a.word_id) || [];
         return { correct, incorrect, incorrectWords };
     }, [gameSession?.answers]);
-
-    // Generate options for choice mode
-    useEffect(() => {
-        if (isStarted && !isFinished && gameMode === 'choice' && gameWords.length > 0) {
-            const currentWord = gameWords[currentIndex];
-            if (!currentWord) return;
-
-            const correctAnswer = currentWord.ru;
-            const otherWords = words.filter(w => w.id !== currentWord.id);
-
-            // Get 3 random unique translations
-            const distractors = [...new Set(otherWords.map(w => w.ru))]
-                .filter(ru => ru !== correctAnswer)
-                .sort(() => Math.random() - 0.5)
-                .slice(0, 3);
-
-            // If not enough distractors, add some placeholders or fill from any words
-            while (distractors.length < 3) {
-                distractors.push(`Option ${distractors.length + 1}`);
-            }
-
-            const allOptions = [correctAnswer, ...distractors].sort(() => Math.random() - 0.5);
-            setOptions(allOptions);
-            setSelectedOption(null);
-        }
-    }, [isStarted, isFinished, gameMode, currentIndex, gameWords, words]);
 
     // Sync immersion mode
     useEffect(() => {
@@ -112,61 +85,7 @@ export const GameView: React.FC = () => {
         await startDbSession(targetListIds, gameMode);
         setIsModeModalOpen(false);
         setUserInput('');
-        setSelectedOption(null);
         setTimeLeft(15);
-    };
-
-    const handleOptionSelect = (option: string) => {
-        if (showFeedback) return;
-        setSelectedOption(option);
-        handleCheckChoice(option);
-    };
-
-    const handleCheckChoice = async (answer: string) => {
-        const currentWord = gameWords[currentIndex];
-        if (!currentWord) return;
-
-        const isCorrect = answer === currentWord.ru;
-        setShowFeedback(isCorrect ? 'correct' : 'incorrect');
-
-        const newAnswer = {
-            word_id: currentWord.id,
-            answer: answer,
-            correct: isCorrect
-        };
-
-        const isLastWord = currentIndex === gameWords.length - 1;
-
-        setTimeout(async () => {
-            setShowFeedback(null);
-            setSelectedOption(null);
-
-            if (!isLastWord) {
-                await updateDbSession({
-                    current_word_index: currentIndex + 1,
-                    answers: [...(gameSession?.answers || []), newAnswer]
-                });
-            } else {
-                finishGame([...(gameSession?.answers || []), newAnswer]);
-            }
-        }, 1500);
-    };
-
-    const finishGame = async (finalAnswers: any[]) => {
-        const finalCorrect = finalAnswers.filter(a => a.correct).length;
-        const finalIncorrectWords = finalAnswers.filter(a => !a.correct).map(a => a.word_id);
-
-        addGameResult({
-            totalQuestions: gameWords.length,
-            correctCount: finalCorrect,
-            percentage: Math.round((finalCorrect / gameWords.length) * 100),
-            incorrectWords: finalIncorrectWords
-        });
-
-        await updateDbSession({
-            answers: finalAnswers,
-            is_finished: true
-        });
     };
 
     const handleCheck = async (e?: React.FormEvent, isTimeUp = false) => {
@@ -179,8 +98,10 @@ export const GameView: React.FC = () => {
         const expectedAnswer = gameMode === 'reverse' ? currentWord.en : currentWord.ru;
         const isCorrect = !isTimeUp && userInput.trim().toLowerCase() === expectedAnswer.toLowerCase();
 
+        // Show feedback immediately
         setShowFeedback(isCorrect ? 'correct' : 'incorrect');
 
+        // Update session in DB
         const newAnswer = {
             word_id: currentWord.id,
             answer: userInput.trim(),
@@ -189,6 +110,7 @@ export const GameView: React.FC = () => {
 
         const isLastWord = currentIndex === gameWords.length - 1;
 
+        // Wait bit for user to see feedback, then move on
         setTimeout(async () => {
             setShowFeedback(null);
             setUserInput('');
@@ -200,7 +122,23 @@ export const GameView: React.FC = () => {
                     answers: [...(gameSession?.answers || []), newAnswer]
                 });
             } else {
-                finishGame([...(gameSession?.answers || []), newAnswer]);
+                // Final answer sync
+                const finalAnswers = [...(gameSession?.answers || []), newAnswer];
+                const finalCorrect = finalAnswers.filter(a => a.correct).length;
+                const finalIncorrectWords = finalAnswers.filter(a => !a.correct).map(a => a.word_id);
+
+                // Add to local history for stats (or let store handle it)
+                addGameResult({
+                    totalQuestions: gameWords.length,
+                    correctCount: finalCorrect,
+                    percentage: Math.round((finalCorrect / gameWords.length) * 100),
+                    incorrectWords: finalIncorrectWords
+                });
+
+                await updateDbSession({
+                    answers: finalAnswers,
+                    is_finished: true
+                });
             }
         }, 1200);
     };
@@ -258,10 +196,6 @@ export const GameView: React.FC = () => {
                         <div className={clsx(styles.modeCard, gameMode === 'regular' && styles.activeMode)} onClick={() => { setGameMode('regular'); startGame(); }}>
                             <Target size={32} />
                             <div className={styles.modeInfo}><h4>{t.modeRegular}</h4><p>{t.modeRegularDesc}</p></div>
-                        </div>
-                        <div className={clsx(styles.modeCard, gameMode === 'choice' && styles.activeMode)} onClick={() => { setGameMode('choice'); startGame(); }}>
-                            <ListFilter size={32} />
-                            <div className={styles.modeInfo}><h4>{t.modeChoice}</h4><p>{t.modeChoiceDesc}</p></div>
                         </div>
                         <div className={clsx(styles.modeCard, gameMode === 'timed' && styles.activeMode)} onClick={() => { setGameMode('timed'); startGame(); }}>
                             <Clock size={32} />
@@ -331,45 +265,23 @@ export const GameView: React.FC = () => {
             <AnimatePresence mode="wait">
                 <motion.div key={currentIndex} className={styles.card} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                     <div className={styles.question}>
-                        <span className={styles.label}>
-                            {gameMode === 'choice' ? translations[language].game.translateThis : t.translateThis}
-                        </span>
+                        <span className={styles.label}>{t.translateThis}</span>
                         <h2 className={styles.word}>{questionWord}</h2>
                     </div>
 
-                    {gameMode === 'choice' ? (
-                        <div className={styles.optionsGrid}>
-                            {options.map((option, idx) => (
-                                <button
-                                    key={idx}
-                                    className={clsx(
-                                        styles.optionBtn,
-                                        selectedOption === option && styles.selectedOption,
-                                        showFeedback && option === currentWord.ru && styles.correctOption,
-                                        showFeedback === 'incorrect' && selectedOption === option && styles.incorrectOption
-                                    )}
-                                    onClick={() => handleOptionSelect(option)}
-                                    disabled={!!showFeedback}
-                                >
-                                    {option}
-                                </button>
-                            ))}
-                        </div>
-                    ) : (
-                        <form onSubmit={(e) => handleCheck(e)} className={styles.answerArea}>
-                            <input
-                                autoFocus
-                                type="text"
-                                value={userInput}
-                                onChange={(e) => setUserInput(e.target.value)}
-                                placeholder={t.placeholder}
-                                disabled={!!showFeedback}
-                            />
-                            <button type="submit" disabled={!!showFeedback || (!userInput.trim() && gameMode !== 'timed')}>
-                                {currentIndex === gameWords.length - 1 ? t.finish : t.check}
-                            </button>
-                        </form>
-                    )}
+                    <form onSubmit={(e) => handleCheck(e)} className={styles.answerArea}>
+                        <input
+                            autoFocus
+                            type="text"
+                            value={userInput}
+                            onChange={(e) => setUserInput(e.target.value)}
+                            placeholder={t.placeholder}
+                            disabled={!!showFeedback}
+                        />
+                        <button type="submit" disabled={!!showFeedback || (!userInput.trim() && gameMode !== 'timed')}>
+                            {currentIndex === gameWords.length - 1 ? t.finish : t.check}
+                        </button>
+                    </form>
 
                     <AnimatePresence>
                         {showFeedback && (

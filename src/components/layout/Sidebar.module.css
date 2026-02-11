@@ -4,15 +4,109 @@
     background: var(--card-bg);
     display: flex;
     flex-direction: column;
+    overflow-y: auto;
+    /* Ensure whole sidebar can scroll on small screens */
 }
 
 @media (min-width: 1024px) {
     .sidebar {
         width: 280px;
         border-right: 1px solid var(--border);
+        overflow-y: hidden;
+        /* Desktop handles overflow in listNav */
     }
 }
 
+/* Mobile Nav Sections */
+.mobileOnlyNav {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+@media (min-width: 1024px) {
+    .mobileOnlyNav {
+        display: none;
+        /* Hide on desktop */
+    }
+}
+
+.sectionTitle {
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.navGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+}
+
+.navItem {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.75rem 0.6rem;
+    background: var(--accent);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    color: var(--text-main);
+    font-weight: 600;
+    font-size: 0.825rem;
+    min-height: 48px;
+    transition: all 0.2s;
+    position: relative;
+    justify-content: flex-start;
+}
+
+.navItem span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.navItem:active {
+    transform: scale(0.97);
+    background: var(--border);
+}
+
+.navItem.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+
+.navItem.logout {
+    color: var(--danger);
+}
+
+.themePreview {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1.5px solid white;
+    margin-left: auto;
+}
+
+.divider {
+    height: 1px;
+    background: var(--border);
+    margin: 0 1.5rem;
+}
+
+@media (min-width: 1024px) {
+    .divider {
+        display: none;
+    }
+}
+
+/* Existing Styles */
 .header {
     padding: 1.5rem;
     display: flex;
@@ -21,22 +115,24 @@
 }
 
 .header h3 {
-    font-size: 0.875rem;
+    font-size: 0.75rem;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.1em;
     color: var(--text-muted);
+    font-weight: 800;
 }
 
 .addBtn {
     background: var(--primary);
     color: white;
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     box-shadow: 0 4px 10px rgba(99, 102, 241, 0.2);
+    transition: all 0.2s;
 }
 
 .addBtn:hover {
@@ -47,26 +143,37 @@
 .listNav {
     flex: 1;
     overflow-y: auto;
-    padding: 0 0.75rem;
+    padding: 0 1rem;
+    padding-bottom: 2rem;
+}
+
+@media (min-width: 1024px) {
+    .listNav {
+        padding: 0 0.75rem;
+    }
 }
 
 .empty {
-    padding: 2rem;
+    padding: 2.5rem;
     text-align: center;
     color: var(--text-muted);
-    font-size: 0.9rem;
+    font-size: 0.95rem;
+    font-weight: 500;
 }
 
 .listItem {
     display: flex;
     align-items: center;
-    padding: 0.875rem 1rem;
+    padding: 0.75rem 1rem;
     border-radius: 12px;
     margin-bottom: 0.4rem;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     color: var(--text-main);
     gap: 0.75rem;
+    min-height: 48px;
+    /* Touch friendly for lists too */
+    background: transparent;
 }
 
 .listItem:hover {
@@ -81,17 +188,68 @@
 
 .listTitle {
     flex: 1;
-    font-weight: 500;
+    font-weight: 600;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    font-size: 0.95rem;
+}
+
+/* Modal styles for adding list */
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.input {
+    width: 100%;
+    padding: 1rem;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    outline: none;
+    background: var(--bg);
+    color: var(--text-main);
+    font-size: 1rem;
+}
+
+.input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+.formActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.formActions button {
+    padding: 0.875rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+.formActions button:first-child {
+    background: var(--accent);
+    color: var(--text-main);
+}
+
+.confirmBtn {
+    background: var(--primary);
+    color: white;
 }
 
 .deleteBtn {
     background: transparent;
     color: var(--text-muted);
-    padding: 0.25rem;
-    border-radius: 6px;
+    padding: 0.4rem;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 @media (min-width: 1024px) {
@@ -111,46 +269,4 @@
 .deleteBtn:hover {
     background: rgba(239, 68, 68, 0.15);
     color: var(--danger) !important;
-}
-
-.form {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-}
-
-.input {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    outline: none;
-    background: var(--bg);
-    color: var(--text-main);
-}
-
-.input:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-}
-
-.formActions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.75rem;
-}
-
-.formActions button:first-child {
-    padding: 0.75rem 1.25rem;
-    border-radius: 10px;
-    background: var(--accent);
-    color: var(--text-main);
-}
-
-.confirmBtn {
-    background: var(--primary);
-    color: white;
-    padding: 0.75rem 1.5rem;
-    border-radius: 10px;
-    font-weight: 600;
 }
