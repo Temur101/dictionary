@@ -85,21 +85,36 @@
     }
 }
 
-.logo {
+.greeting {
     display: flex;
     align-items: center;
+    background: var(--accent);
+    padding: 0.5rem 1.25rem;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    animation: fadeIn 0.5s ease;
 }
 
-.navLogo {
-    height: 40px;
-    width: auto;
-    filter: drop-shadow(0 4px 6px rgba(99, 102, 241, 0.2));
+.motivationalText {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
 }
 
 @media (min-width: 768px) {
-    .navLogo {
-        height: 48px;
+    .motivationalText {
+        font-size: 1.1rem;
+        max-width: 400px;
     }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .navLeft {

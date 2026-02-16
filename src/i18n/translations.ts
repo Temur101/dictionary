@@ -103,7 +103,14 @@ export const translations = {
             title: '404 - Lost in Translation?',
             desc: "The page you are looking for doesn't exist or has moved to a different dictionary.",
             back: 'Go Home'
-        }
+        },
+        motivationalPhrases: [
+            'Reach new heights, {name}!',
+            'Time to learn, {name}!',
+            'You can do anything, {name}!',
+            'Every word brings you closer to your goal.',
+            'Your progress is impressive, {name}!'
+        ]
     },
     ru: {
         title: 'Словарь Мастер',
@@ -209,6 +216,13 @@ export const translations = {
             title: '404 - Страница не найдена',
             desc: 'Похоже, это слово ускользнуло из нашего словаря или страницы никогда не существовало.',
             back: 'Вернуться на главную'
-        }
+        },
+        motivationalPhrases: [
+            'К новым вершинам, {name}!',
+            'Время учиться, {name}!',
+            'Ты сможешь всё, {name}!',
+            'Каждое слово приближает к цели.',
+            'Твой прогресс впечатляет, {name}!'
+        ]
     }
 };

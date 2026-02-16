@@ -12,7 +12,7 @@ import { Menu, X as CloseIcon, Play, BarChart2, Languages, Book, Palette, Globe,
 import { translations } from './i18n/translations';
 import styles from './App.module.css';
 import clsx from 'clsx';
-import type { AppTheme, AppLanguage } from './types';
+import type { AppTheme } from './types';
 
 const App: React.FC = () => {
   const {
@@ -66,6 +66,16 @@ const App: React.FC = () => {
     }
   }, [isGameActive]);
 
+  const [motivationalText, setMotivationalText] = useState('');
+
+  useEffect(() => {
+    const phrases = t.motivationalPhrases;
+    if (phrases && phrases.length > 0) {
+      const phrase = phrases[Math.floor(Math.random() * phrases.length)];
+      setMotivationalText(phrase.replace('{name}', user?.name || (language === 'ru' ? 'друг' : 'friend')));
+    }
+  }, [language, user, t.motivationalPhrases]);
+
   if (!user) {
     return <AuthPage />;
   }
@@ -96,8 +106,10 @@ const App: React.FC = () => {
             <button className={styles.menuBtn} onClick={() => setSidebarOpen(!isSidebarOpen)}>
               {isSidebarOpen ? <CloseIcon size={24} /> : <Menu size={24} />}
             </button>
-            <div className={styles.logo}>
-              <img src="/icon.svg" alt="Logo" className={styles.navLogo} />
+            <div className={styles.greeting}>
+              <span className={styles.motivationalText}>
+                {motivationalText}
+              </span>
             </div>
           </div>
 
